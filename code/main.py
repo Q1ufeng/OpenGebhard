@@ -8,7 +8,7 @@ from memory_mo import memory_mo
 
 
 def main():
-    a = memory_mo(10)
+    a = cpu_mo(10)
     for x in a[1]:
         print(x)
 
