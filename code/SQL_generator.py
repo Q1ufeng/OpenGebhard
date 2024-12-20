@@ -306,7 +306,7 @@ def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
                                         INSERT INTO reader_stock (id, book_id, book_num)
                                         SELECT reader_id, book_id, SUM(borrow_num)
                                         FROM temp_joined_table
-                                        GROUP BY reader_id, book_id
+                                        GROUP BY reader_id, book_id;
                                     END IF;
                         
                         
