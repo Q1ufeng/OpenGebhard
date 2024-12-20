@@ -188,7 +188,7 @@ def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
                         END IF;\
                     DROP TABLE temp_joined_table;\
                     END;\
-                    $$ LANGUAGE plpgsql""")
+                    $$ LANGUAGE plpgsql;""")
     SQLs.append("""CREATE OR REPLACE FUNCTION purchase_request()\
                     RETURNS VOID AS $$\
                         BEGIN\
