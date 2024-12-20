@@ -432,12 +432,19 @@ def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
 
     # sql to initialize the stock and the residents
     for i in range(book_num):
-        in_SQLs.append(
+        in_pg_sqls.append(
             "INSERT INTO stock VALUES(" + str(i + 1) + ",'" + book_names[i] + "'," + str(book_stock[i]) + "," + str(
                 book_price[i]) + ");")
-        in_SQLs.append("INSERT INTO book_info VALUES("+str(i+1)+",'"+str(book_names[i])+"');")
+        in_pg_sqls.append("INSERT INTO book_info VALUES("+str(i+1)+",'"+str(book_names[i])+"');")
+        in_gs_sqls.append(
+            "INSERT INTO stock VALUES(" + str(i + 1) + ",'" + book_names[i] + "'," + str(book_stock[i]) + "," + str(
+                book_price[i]) + ");")
+        in_gs_sqls.append("INSERT INTO book_info VALUES("+str(i+1)+",'"+str(book_names[i])+"');")
     for i in range(people_num_sqrt * people_num_sqrt):
-        in_SQLs.append(
+        in_pg_sqls.append(
+            "INSERT INTO reader VALUES(" + str(i + 1) + ",'" + people_names[i] + "','" + people_addr[i] + "'," + str(
+                people_depo[i]) + "," + "0" + ");")
+        in_gs_sqls.append(
             "INSERT INTO reader VALUES(" + str(i + 1) + ",'" + people_names[i] + "','" + people_addr[i] + "'," + str(
                 people_depo[i]) + "," + "0" + ");")
 
