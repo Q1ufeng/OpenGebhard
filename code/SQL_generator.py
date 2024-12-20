@@ -32,7 +32,7 @@ def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
     in_SQLs.append("CREATE TABLE to_borrow(id integer,reader_id integer,book_id integer,borrow_num integer,dealt bool);")
     in_SQLs.append("CREATE TABLE borrowed(id integer,reader_id integer,book_id integer,book_num integer);")
     in_SQLs.append("CREATE TABLE giveback(id integer,reader_id integer,dealt bool);")
-    in_SQLs.append("CREATE TABLE reader_stock(id integer,book_id integer,book_num integer,CONSTRAINT CONS1 UNIQUE (id, book_id));")
+    in_SQLs.append("CREATE TABLE reader_stock(id integer,book_id integer,book_num integer);")
     in_SQLs.append("CREATE TABLE purchase(id integer,book_id integer,book_num integer,dealt bool);")
     in_SQLs.append("CREATE TABLE book_info(id integer,name varchar(35));")
 
