@@ -4,6 +4,8 @@ import info_generator
 
 def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
     in_SQLs = []
+    in_pg_sqls = []
+    in_gs_sqls = []
     deal_SQLs = []
     info = info_generator.info_generator(people_num_sqrt, book_num)
     people_names = info[0]
@@ -34,8 +36,11 @@ def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
     in_SQLs.append("CREATE TABLE purchase(id integer,book_id integer,book_num integer,dealt bool);")
     in_SQLs.append("CREATE TABLE book_info(id integer,name varchar(35));")
 
+    in_pg_sqls = in_SQLs.copy()
+    in_gs_sqls = in_SQLs.copy()
+
     # sql to initialize useful functions
-    in_SQLs.append("""CREATE OR REPLACE FUNCTION borrow_request()\
+    in_pg_sqls.append("""CREATE OR REPLACE FUNCTION borrow_request()\
                     RETURNS VOID AS $$\
                     DECLARE\
                         can_borrow BOOLEAN;\
@@ -116,7 +121,7 @@ def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
                     DROP TABLE temp_joined_table;\
                     END;\
                     $$ LANGUAGE plpgsql;""")
-    in_SQLs.append("""CREATE OR REPLACE FUNCTION giveback_request()\
+    in_pg_sqls.append("""CREATE OR REPLACE FUNCTION giveback_request()\
                     RETURNS VOID AS $$\
                     DECLARE\
                         has_book BOOLEAN;\
@@ -190,7 +195,7 @@ def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
                     DROP TABLE temp_joined_table;\
                     END;\
                     $$ LANGUAGE plpgsql;""")
-    in_SQLs.append("""CREATE OR REPLACE FUNCTION purchase_request()\
+    in_pg_sqls.append("""CREATE OR REPLACE FUNCTION purchase_request()\
                     RETURNS VOID AS $$\
                         BEGIN\
                             CREATE TEMP TABLE temp_joined_table AS\
@@ -219,6 +224,201 @@ def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
                         DROP TABLE temp_joined_table;\
                         END;\
                     $$ LANGUAGE plpgsql;""")
+
+
+
+    in_gs_sqls.append("""CREATE OR REPLACE FUNCTION borrow_request()\
+                    RETURNS VOID \
+                     LANGUAGE plpgsql\
+                    AS $$\
+                    DECLARE\
+                        can_borrow BOOLEAN;\
+                    BEGIN\
+                        CREATE TEMP TABLE temp_joined_table AS\
+                        WITH joined_table AS (\
+                            SELECT\
+                                to_borrow.id AS to_borrow_id,\
+                                to_borrow.reader_id AS reader_id,\
+                                to_borrow.book_id AS book_id,\
+                                i.name AS book_name,\
+                                to_borrow.borrow_num AS borrow_num,\
+                                s.book_num AS book_num,\
+                                r.cost AS cost,\
+                                r.deposit AS deposit,\
+                                s.price AS price\
+                            FROM to_borrow\
+                            JOIN public.reader r ON r.id = to_borrow.reader_id\
+                            JOIN public.book_info i ON i.id = to_borrow.book_id\
+                            JOIN stock s ON s.book_name = i.name\
+                            WHERE to_borrow.dealt = FALSE\
+                        )\
+                        SELECT * FROM joined_table;\
+                    \
+                        SELECT EXISTS (\
+                            SELECT 1\
+                            FROM temp_joined_table\
+                            WHERE book_num >= borrow_num AND deposit - cost - price * borrow_num >= 0\
+                        )\
+                        INTO can_borrow;\
+                    \
+                        IF can_borrow THEN\
+                            UPDATE to_borrow\
+                            SET dealt = TRUE\
+                            WHERE id IN (\
+                                SELECT to_borrow_id\
+                                FROM temp_joined_table\
+                            );\
+                    \
+                            INSERT INTO borrowed(id, reader_id, book_id, book_num)\
+                            SELECT to_borrow_id, reader_id, book_id, borrow_num\
+                            FROM temp_joined_table;\
+                    \
+                            UPDATE reader\
+                            SET cost = cost + (\
+                                SELECT SUM(borrow_num * price)\
+                                FROM temp_joined_table\
+                            )\
+                            WHERE reader.id IN (\
+                                SELECT reader_id\
+                                FROM temp_joined_table\
+                            );\
+                    \
+                            UPDATE stock\
+                            SET book_num = stock.book_num - subquery.borrow_num\
+                            FROM (\
+                                SELECT book_name, borrow_num\
+                                FROM temp_joined_table\
+                            ) AS subquery\
+                            WHERE stock.book_name = subquery.book_name;\
+                    \
+                            INSERT INTO reader_stock (id, book_id, book_num)\
+                            SELECT reader_id, book_id, SUM(borrow_num)\
+                            FROM temp_joined_table\
+                            GROUP BY reader_id, book_id\
+                            ON CONFLICT (id, book_id)\
+                            DO UPDATE\
+                            SET book_num = reader_stock.book_num + EXCLUDED.book_num;\
+                    \
+                        ELSE\
+                            UPDATE to_borrow\
+                            SET dealt = 'true'\
+                            WHERE id IN (\
+                                SELECT to_borrow_id\
+                                FROM temp_joined_table\
+                            );\
+                        END IF;\
+                    DROP TABLE temp_joined_table;\
+                    END;\
+                    $$;""")
+    in_gs_sqls.append("""CREATE OR REPLACE FUNCTION giveback_request()\
+                    RETURNS VOID \
+                     LANGUAGE plpgsql\
+                    AS $$\
+                    DECLARE\
+                        has_book BOOLEAN;\
+                    BEGIN\
+                        CREATE TEMP TABLE temp_joined_table AS\
+                        WITH joined_table AS (\
+                            SELECT\
+                                giveback.id AS giveback_id,\
+                                giveback.reader_id AS reader_id,\
+                                rs.book_id AS book_id,\
+                                rs.book_num AS book_num,\
+                                I.name AS book_name,\
+                                s.price AS price\
+                            FROM giveback\
+                            JOIN reader_stock rs ON rs.id = giveback.reader_id\
+                            JOIN book_info i ON rs.book_id = i.id\
+                            JOIN stock s ON rs.book_id = i.id\
+                            WHERE giveback.dealt = FALSE\
+                        )\
+                        SELECT * FROM joined_table;\
+                    \
+                        SELECT EXISTS(\
+                            SELECT 1\
+                            FROM temp_joined_table\
+                        )\
+                        INTO has_book;\
+                    \
+                        IF has_book THEN\
+                            DELETE FROM reader_stock\
+                            WHERE reader_stock.id IN (\
+                                SELECT reader_id\
+                                FROM temp_joined_table\
+                                );\
+                    \
+                            UPDATE reader\
+                            SET cost = cost - (\
+                                SELECT SUM(book_num*price)\
+                                FROM temp_joined_table\
+                                WHERE temp_joined_table.reader_id = reader.id\
+                                )\
+                            WHERE reader.reader_name IN (\
+                                SELECT reader_name\
+                                FROM temp_joined_table\
+                                );\
+                    \
+                            UPDATE stock\
+                            SET book_num = book_num + (\
+                                SELECT SUM(book_num)\
+                                FROM temp_joined_table\
+                                WHERE temp_joined_table.book_name = stock.book_name\
+                                )\
+                            WHERE stock.book_name IN (\
+                                SELECT book_name\
+                                FROM temp_joined_table\
+                                );\
+                    \
+                            UPDATE giveback\
+                            SET dealt = TRUE\
+                            WHERE id IN (\
+                                SELECT giveback_id\
+                                FROM temp_joined_table\
+                                );\
+                        ELSE\
+                            UPDATE giveback\
+                            SET dealt = TRUE\
+                            WHERE id IN (\
+                                SELECT giveback_id\
+                                FROM temp_joined_table\
+                                );\
+                        END IF;\
+                    DROP TABLE temp_joined_table;\
+                    END;\
+                    $$;""")
+    in_gs_sqls.append("""CREATE OR REPLACE FUNCTION purchase_request()\
+                    RETURNS VOID \
+                     LANGUAGE plpgsql \
+                    AS $$\
+                        BEGIN\
+                            CREATE TEMP TABLE temp_joined_table AS\
+                            WITH joined_table AS (\
+                                SELECT\
+                                    purchase.book_id AS book_id,\
+                                    purchase.book_num AS book_num,\
+                                    i.name AS book_name\
+                                FROM purchase\
+                                JOIN book_info i ON i.id = purchase.book_id\
+                                WHERE purchase.dealt = FALSE\
+                            )\
+                            SELECT * FROM joined_table;\
+                            UPDATE stock\
+                            SET book_num = book_num + (\
+                                SELECT SUM(book_num)\
+                                FROM temp_joined_table\
+                                )\
+                            WHERE stock.book_name IN (\
+                                SELECT book_name\
+                                FROM temp_joined_table\
+                                );\
+                            UPDATE purchase\
+                            SET dealt = TRUE\
+                            WHERE id >= 0;\
+                        DROP TABLE temp_joined_table;\
+                        END;\
+                    $$;""")
+
+
 
     # sql to initialize the stock and the residents
     for i in range(book_num):
@@ -263,4 +463,4 @@ def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
             deal_SQLs.append("SELECT purchase_request();")
             purchase_id = purchase_id + 1
 
-    return in_SQLs , deal_SQLs
+    return in_pg_sqls,in_gs_sqls , deal_SQLs
