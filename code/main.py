@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 from monitor import monitor
 
 def main():
-    SQL_file_writer("test",10,30,5000)
+    #SQL_file_writer("test",10,30,500)
     x = monitor(100,1)
     for i in range(len(x[0])):
         print("time:"+str(x[0][i])+" cpu:"+str(x[1][i])+" memory:"+str(x[2][i])+" io:"+str(x[3][i]))
