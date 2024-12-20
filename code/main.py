@@ -11,10 +11,10 @@ from concurrent.futures import ThreadPoolExecutor
 from monitor import monitor
 
 def main():
-    SQL_file_writer("test",10,30,5000)
-    #x = monitor(5,1)
-    #for i in range(3):
-    #    print("time:"+str(x[0][i])+"cpu:"+str(x[1][i])+"memory:"+str(x[2][i])+"disk:"+str(x[3][i])+"io:"+str(x[4][i]))
+    #SQL_file_writer("test",10,30,5000)
+    x = monitor(300,1)
+    for i in range(len(x[0])):
+        print("time:"+str(x[0][i])+" cpu:"+str(x[1][i])+" memory:"+str(x[2][i])+" io:"+str(x[3][i]))
 
 if __name__ == "__main__":
     main()
