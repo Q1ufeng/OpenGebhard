@@ -20,7 +20,7 @@ def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
     SQLs.append("DROP TABLE giveback;")
     SQLs.append("DROP TABLE reader_stock;")
     SQLs.append("DROP TABLE purchase;")
-    SQLs.append("DROP TABLE book_info")
+    SQLs.append("DROP TABLE book_info;")
 
     # sql to initialize all tables
     SQLs.append("CREATE TABLE stock (id integer,book_name varchar(35),book_num integer,price integer);")
