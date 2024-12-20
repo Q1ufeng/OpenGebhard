@@ -3,7 +3,8 @@ import info_generator
 
 
 def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
-    SQLs = []
+    in_SQLs = []
+    deal_SQLs = []
     info = info_generator.info_generator(people_num_sqrt, book_num)
     people_names = info[0]
     people_addr = info[1]
@@ -13,28 +14,28 @@ def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
     book_price = info[5]
 
     # sql to drop all previous tables (need to be commented at the first run)
-    SQLs.append("DROP TABLE stock;")
-    SQLs.append("DROP TABLE reader;")
-    SQLs.append("DROP TABLE to_borrow;")
-    SQLs.append("DROP TABLE borrowed;")
-    SQLs.append("DROP TABLE giveback;")
-    SQLs.append("DROP TABLE reader_stock;")
-    SQLs.append("DROP TABLE purchase;")
-    SQLs.append("DROP TABLE book_info;")
+    in_SQLs.append("DROP TABLE stock;")
+    in_SQLs.append("DROP TABLE reader;")
+    in_SQLs.append("DROP TABLE to_borrow;")
+    in_SQLs.append("DROP TABLE borrowed;")
+    in_SQLs.append("DROP TABLE giveback;")
+    in_SQLs.append("DROP TABLE reader_stock;")
+    in_SQLs.append("DROP TABLE purchase;")
+    in_SQLs.append("DROP TABLE book_info;")
 
     # sql to initialize all tables
-    SQLs.append("CREATE TABLE stock (id integer,book_name varchar(35),book_num integer,price integer);")
-    SQLs.append(
+    in_SQLs.append("CREATE TABLE stock (id integer,book_name varchar(35),book_num integer,price integer);")
+    in_SQLs.append(
         "CREATE TABLE reader (id integer,reader_name varchar(35),address varchar(35),deposit integer,cost integer);")
-    SQLs.append("CREATE TABLE to_borrow(id integer,reader_id integer,book_id integer,borrow_num integer,dealt bool);")
-    SQLs.append("CREATE TABLE borrowed(id integer,reader_id integer,book_id integer,book_num integer);")
-    SQLs.append("CREATE TABLE giveback(id integer,reader_id integer,dealt bool);")
-    SQLs.append("CREATE TABLE reader_stock(id integer,book_id integer,book_num integer,CONSTRAINT CONS1 UNIQUE (id, book_id));")
-    SQLs.append("CREATE TABLE purchase(id integer,book_id integer,book_num integer,dealt bool);")
-    SQLs.append("CREATE TABLE book_info(id integer,name varchar(35));")
+    in_SQLs.append("CREATE TABLE to_borrow(id integer,reader_id integer,book_id integer,borrow_num integer,dealt bool);")
+    in_SQLs.append("CREATE TABLE borrowed(id integer,reader_id integer,book_id integer,book_num integer);")
+    in_SQLs.append("CREATE TABLE giveback(id integer,reader_id integer,dealt bool);")
+    in_SQLs.append("CREATE TABLE reader_stock(id integer,book_id integer,book_num integer,CONSTRAINT CONS1 UNIQUE (id, book_id));")
+    in_SQLs.append("CREATE TABLE purchase(id integer,book_id integer,book_num integer,dealt bool);")
+    in_SQLs.append("CREATE TABLE book_info(id integer,name varchar(35));")
 
     # sql to initialize useful functions
-    SQLs.append("""CREATE OR REPLACE FUNCTION borrow_request()\
+    in_SQLs.append("""CREATE OR REPLACE FUNCTION borrow_request()\
                     RETURNS VOID AS $$\
                     DECLARE\
                         can_borrow BOOLEAN;\
@@ -115,7 +116,7 @@ def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
                     DROP TABLE temp_joined_table;\
                     END;\
                     $$ LANGUAGE plpgsql;""")
-    SQLs.append("""CREATE OR REPLACE FUNCTION giveback_request()\
+    in_SQLs.append("""CREATE OR REPLACE FUNCTION giveback_request()\
                     RETURNS VOID AS $$\
                     DECLARE\
                         has_book BOOLEAN;\
@@ -189,7 +190,7 @@ def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
                     DROP TABLE temp_joined_table;\
                     END;\
                     $$ LANGUAGE plpgsql;""")
-    SQLs.append("""CREATE OR REPLACE FUNCTION purchase_request()\
+    in_SQLs.append("""CREATE OR REPLACE FUNCTION purchase_request()\
                     RETURNS VOID AS $$\
                         BEGIN\
                             CREATE TEMP TABLE temp_joined_table AS\
@@ -221,12 +222,12 @@ def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
 
     # sql to initialize the stock and the residents
     for i in range(book_num):
-        SQLs.append(
+        in_SQLs.append(
             "INSERT INTO stock VALUES(" + str(i + 1) + ",'" + book_names[i] + "'," + str(book_stock[i]) + "," + str(
                 book_price[i]) + ");")
-        SQLs.append("INSERT INTO book_info VALUES("+str(i+1)+",'"+str(book_names[i])+"');")
+        in_SQLs.append("INSERT INTO book_info VALUES("+str(i+1)+",'"+str(book_names[i])+"');")
     for i in range(people_num_sqrt * people_num_sqrt):
-        SQLs.append(
+        in_SQLs.append(
             "INSERT INTO reader VALUES(" + str(i + 1) + ",'" + people_names[i] + "','" + people_addr[i] + "'," + str(
                 people_depo[i]) + "," + "0" + ");")
 
@@ -239,27 +240,27 @@ def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
     giveback_id = 1
     purchase_id = 1
 
-    # generate sqls
+    # generate in_SQLs
     for i in range(10 * SQL_numbase):
         if order[i] == 1:
             reader_id = random.randint(1, people_num_sqrt * people_num_sqrt)
             book_id = random.randint(1, book_num)
             borrow_num = random.randint(1, 3)
-            SQLs.append("INSERT INTO to_borrow VALUES(" + str(to_borrow_id) + "," + str(reader_id) + "," + str(
+            deal_SQLs.append("INSERT INTO to_borrow VALUES(" + str(to_borrow_id) + "," + str(reader_id) + "," + str(
                 book_id) + "," + str(borrow_num) + "," + "FALSE" + ");")
-            SQLs.append("SELECT borrow_request();")
+            deal_SQLs.append("SELECT borrow_request();")
             to_borrow_id = to_borrow_id + 1
         elif order[i] == 2:
             reader_id = random.randint(1, people_num_sqrt * people_num_sqrt)
-            SQLs.append("INSERT INTO giveback VALUES(" + str(giveback_id) + "," + str(reader_id)+ "," + "FALSE" + ");")
-            SQLs.append("SELECT giveback_request();")
+            deal_SQLs.append("INSERT INTO giveback VALUES(" + str(giveback_id) + "," + str(reader_id)+ "," + "FALSE" + ");")
+            deal_SQLs.append("SELECT giveback_request();")
             giveback_id = giveback_id + 1
         else:
             book_id = random.randint(1, book_num)
             buy_num = random.randint(1, 9)
-            SQLs.append(
+            deal_SQLs.append(
                 "INSERT INTO purchase VALUES(" + str(purchase_id) + "," + str(book_id) + "," + str(buy_num)+ "," + "FALSE" + ");")
-            SQLs.append("SELECT purchase_request();")
+            deal_SQLs.append("SELECT purchase_request();")
             purchase_id = purchase_id + 1
 
-    return SQLs
+    return in_SQLs , deal_SQLs
