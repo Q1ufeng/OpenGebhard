@@ -13,9 +13,9 @@ from monitor import monitor
 
 def main():
     if sys.argv[1] == "write":
-        SQL_file_writer("test", sys.argv[2], sys.argv[3], sys.argv[4])
+        SQL_file_writer("test", int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]))
     elif sys.argv[1] == "monitor":
-        x = monitor(sys.argv[2],sys.argv[3])
+        x = monitor(int(sys.argv[2]),float(sys.argv[3]))
         for i in range(len(x[0])):
             print("time:"+str(x[0][i])+" cpu:"+str(x[1][i])+" memory:"+str(x[2][i])+" io:"+str(x[3][i]))
 
