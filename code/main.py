@@ -1,5 +1,6 @@
 import psutil
 import time
+import sys
 
 from SQL_file_writer import SQL_file_writer
 from cpu_mo import cpu_mo
@@ -11,10 +12,12 @@ from concurrent.futures import ThreadPoolExecutor
 from monitor import monitor
 
 def main():
-    SQL_file_writer("test",10,30,500)
-    #x = monitor(100,1)
-    #for i in range(len(x[0])):
-    #    print("time:"+str(x[0][i])+" cpu:"+str(x[1][i])+" memory:"+str(x[2][i])+" io:"+str(x[3][i]))
+    if sys.argv[1] == "write":
+        SQL_file_writer("test", sys.argv[2], sys.argv[3], sys.argv[4])
+    elif sys.argv[1] == "monitor":
+        x = monitor(sys.argv[2],sys.argv[3])
+        for i in range(len(x[0])):
+            print("time:"+str(x[0][i])+" cpu:"+str(x[1][i])+" memory:"+str(x[2][i])+" io:"+str(x[3][i]))
 
 if __name__ == "__main__":
     main()
