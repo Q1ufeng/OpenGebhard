@@ -55,12 +55,12 @@ def main():
             pg_data[i] = float(pg_data[i])
         for i in range(len(gs_data)):
             gs_data[i] = float(gs_data[i])
-        pg_cpu_usage = pg_data[4:3+data_width_pg]
-        pg_memory_usage = pg_data[4+data_width_pg:3+2*data_width_pg]
-        pg_disk_io_speed = pg_data[4+2*data_width_pg:3+3*data_width_pg]
-        gs_cpu_usage = gs_data[4:3+data_width_gs]
-        gs_memory_usage = gs_data[4+data_width_gs:3+2*data_width_gs]
-        gs_disk_io_speed = gs_data[4+2*data_width_gs:3+3*data_width_gs]
+        pg_cpu_usage = pg_data[4:4+data_width_pg]
+        pg_memory_usage = pg_data[4+data_width_pg:4+2*data_width_pg]
+        pg_disk_io_speed = pg_data[4+2*data_width_pg:4+3*data_width_pg]
+        gs_cpu_usage = gs_data[4:4+data_width_gs]
+        gs_memory_usage = gs_data[4+data_width_gs:4+2*data_width_gs]
+        gs_disk_io_speed = gs_data[4+2*data_width_gs:4+3*data_width_gs]
         times = []
         for i in range(max(data_width_pg, data_width_gs)):
             times.append(i+1)
