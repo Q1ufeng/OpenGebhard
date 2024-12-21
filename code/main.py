@@ -41,16 +41,20 @@ def main():
             pg_data = pickle.load(f)
         with open('gs_data.pkl','rb') as f:
             gs_data = pickle.load(f)
-        data_width_pg = pg_data[3]
-        data_width_gs = gs_data[3]
-        pg_insert_num = pg_data[0]
-        gs_insert_num = gs_data[0]
-        pg_transaction_num = pg_data[1]
-        gs_transaction_num = gs_data[1]
-        pg_insert_speed = round(float(pg_data[0])/pg_data[2],3)
-        gs_insert_speed = round(float(gs_data[0])/gs_data[2],3)
-        pg_transaction_speed = round(float(pg_data[1])/pg_data[2],3)
-        gs_transaction_speed = round(float(gs_data[1])/gs_data[2])
+        data_width_pg = int(pg_data[3])
+        data_width_gs = int(gs_data[3])
+        pg_insert_num = int(pg_data[0])
+        gs_insert_num = int(gs_data[0])
+        pg_transaction_num = int(pg_data[1])
+        gs_transaction_num = int(gs_data[1])
+        pg_insert_speed = round(float(pg_data[0])/int(pg_data[2]),3)
+        gs_insert_speed = round(float(gs_data[0])/int(gs_data[2]),3)
+        pg_transaction_speed = round(float(pg_data[1])/int(pg_data[2]),3)
+        gs_transaction_speed = round(float(gs_data[1])/int(gs_data[2]),3)
+        for i in range(len(pg_data)):
+            pg_data[i] = float(pg_data[i])
+        for i in range(len(gs_data)):
+            gs_data[i] = float(gs_data[i])
         pg_cpu_usage = pg_data[4:3+data_width_pg]
         pg_memory_usage = pg_data[4+data_width_pg:3+2*data_width_pg]
         pg_disk_io_speed = pg_data[4+2*data_width_pg:3+3*data_width_pg]
