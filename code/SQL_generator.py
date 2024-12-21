@@ -32,12 +32,15 @@ def SQL_generator(people_num_sqrt, book_num, SQL_numbase):
     in_SQLs.append("CREATE TABLE to_borrow(id integer,reader_id integer,book_id integer,borrow_num integer,dealt bool);")
     in_SQLs.append("CREATE TABLE borrowed(id integer,reader_id integer,book_id integer,book_num integer);")
     in_SQLs.append("CREATE TABLE giveback(id integer,reader_id integer,dealt bool);")
-    in_SQLs.append("CREATE TABLE reader_stock(id integer,book_id integer,book_num integer);")
     in_SQLs.append("CREATE TABLE purchase(id integer,book_id integer,book_num integer,dealt bool);")
     in_SQLs.append("CREATE TABLE book_info(id integer,name varchar(35));")
 
     in_pg_sqls = in_SQLs.copy()
     in_gs_sqls = in_SQLs.copy()
+
+    in_gs_sqls.append("CREATE TABLE reader_stock(id integer,book_id integer,book_num integer);")
+    in_pg_sqls.append("CREATE TABLE reader_stock(id integer,book_id integer,book_num integer,UNIQUE (id,book_id));")
+
 
     # sql to initialize useful functions
     in_pg_sqls.append("""CREATE OR REPLACE FUNCTION borrow_request()\
