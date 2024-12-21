@@ -65,13 +65,13 @@ def main():
         for i in range(max(data_width_pg, data_width_gs)):
             times.append(i+1)
         if (data_width_pg<data_width_gs):
-            pg_cpu_usage.append(data_width_gs-data_width_pg)
-            pg_memory_usage.append(data_width_gs-data_width_pg)
-            pg_disk_io_speed.append(data_width_gs-data_width_pg)
+            pg_cpu_usage.extend([0] * (data_width_gs-data_width_pg))
+            pg_memory_usage.extend([0] * (data_width_gs-data_width_pg))
+            pg_disk_io_speed.extend([0] * (data_width_gs-data_width_pg))
         elif (data_width_gs<data_width_pg):
-            gs_cpu_usage.append(data_width_pg-data_width_gs)
-            gs_memory_usage.append(data_width_pg-data_width_gs)
-            gs_disk_io_speed.append(data_width_pg-data_width_gs)
+            gs_cpu_usage.extend([0] * (data_width_pg-data_width_gs))
+            gs_memory_usage.extend([0] * (data_width_pg-data_width_gs))
+            gs_disk_io_speed.extend([0] * (data_width_pg-data_width_gs))
 
         plt.figure(figsize=(10,6))
         plt.plot(times, pg_cpu_usage,label='Postgres',color='blue')
