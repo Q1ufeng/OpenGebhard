@@ -16,9 +16,9 @@ To better simulate real-world scenarios, this experiment uses a database designe
 
 #### 1.2 Database Design
 
-This experiment uses 7 interconnected tables to simulate the work flow of a library system.
+This experiment uses 8 interconnected tables to simulate the work flow of a library system.
 
-The 7 tables store the following information:
+The 8 tables store the following information:
 
 - Stock information
 - Reader information
